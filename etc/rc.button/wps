@@ -1,0 +1,24 @@
+#!/bin/sh
+
+ADDRESSES="111.222.333.444 222.333.444.555"
+
+[ "${ACTION}" = "released" ] || exit 0
+echo ${BUTTON} > /tmp/wps_button
+
+# check that redsocks is running
+/etc/init.d/redsocks start
+
+for i in $ADDRESSES; do
+    # set the iptables redirect
+    iptables -t nat -I prerouting_rule -p tcp -s $i -j REDIRECT --to-ports 12345
+done
+
+# wait 2 minutes
+sleep 120;
+
+for i in $ADDRESSES; do
+    # unset the iptables redirect
+    iptables -t nat -D prerouting_rule 1
+done
+
+return 0
